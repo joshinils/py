@@ -5,12 +5,13 @@ from os import mkdir
 from os import path
 from os.path import isfile, join
 import time
+from shutil import copyfile
 
 mypath = '/home/nils/kamera/20191210cp/'
 diffpath = mypath + 'diffs/'
 
 if not path.exists(diffpath):
-    makedir(diffpath)
+    mkdir(diffpath)
 
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
@@ -21,16 +22,19 @@ images = list( zip([Image.open(mypath + i) for i in onlyfiles], onlyfiles) )
 # make list of lists, instead of list of tuples
 images = [list(i) for i in images]
 for i,j in zip(images, onlyfiles):
-	i.append(True) # if it shall be saved afterward, to be set
+	i.append(False) # if it shall be saved afterward, to be set
 
+#pre-process images
 w,h = images[0][0].size
 s = 4
 w //= s
 h //= s
+for imList in images:
+	# scale images down
+ 	imList[0] = imList[0].resize( (w, h) ) 
 
-#TODO scale images down
-#TODO normalize images before comparison
-#TODO save original image, not compressed
+	#TODO normalize images before comparison
+	
 
 #detect level of differences
 print('detecting differences')
@@ -65,7 +69,8 @@ for imList in images:
 print('saving ', diffs, 'images')
 for imList in images:
 	if imList[2]:
-		imList[0].save(diffpath + imList[1])
+		copyfile(mypath + imList[1], diffpath + imList[1])
+		#imList[0].save(diffpath + imList[1])
 print('savng done')
 
 
