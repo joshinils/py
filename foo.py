@@ -1,41 +1,47 @@
 from PIL import Image
 import numpy as np
 from os import listdir
+from os import mkdir
+from os import path
 from os.path import isfile, join
 import time
 
 mypath = '/home/nils/kamera/20191210cp/'
-diffpath = '/home/nils/kamera/diffs/'
+diffpath = mypath + 'diffs/'
+
+if not path.exists(diffpath):
+    makedir(diffpath)
 
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
 onlyfiles.sort()
+print('opening ', len(onlyfiles), ' images')
+images = list( zip([Image.open(mypath + i) for i in onlyfiles], onlyfiles) )
 
-images = [Image.open(mypath + i) for i in onlyfiles]
+# make list of lists, instead of list of tuples
+images = [list(i) for i in images]
+for i,j in zip(images, onlyfiles):
+	i.append(True) # if it shall be saved afterward, to be set
 
-w,h = images[0].size
+w,h = images[0][0].size
 s = 4
 w //= s
 h //= s
 
-for i in range(len(images)):
-	images[i] = images[i].resize( (w, h) )
+#TODO scale images down
+#TODO normalize images before comparison
+#TODO save original image, not compressed
 
-print(len(images))
-
-diffs = []
-
-for i in range(0, len(images)-1):
-	buf1 = np.asfarray(images[i  ])
-	buf2 = np.asfarray(images[i+1])
+#detect level of differences
+print('detecting differences')
+for index, imList in enumerate(images):
+	if index == len(images)-1:
+		break
+	print('comparing image ', index, ' of ', len(images), end=' ')
+	buf1 = np.asfarray(imList[0])
+	buf2 = np.asfarray(images[index+1][0])
 
 	buf3 = abs(buf1 - buf2)
-
-	m = 0
-	for px in buf3:
-		for py in px:
-			m = max(max(py), m)
-	print(m)
 
 	p = [0,0,0];
 	for k in range(h):
@@ -43,26 +49,70 @@ for i in range(0, len(images)-1):
 			p += buf3[k][j]
 	p /= w*h
 	p = (p[0]+ p[1] + p[2]) / 3
-	print(p)
+	print(' diff=', p, end='\r')
 
-	doSave = (p >= 6)
-	if doSave:
-		buf3 = np.uint8(buf3)
-		diff = Image.fromarray(buf3)
-	
-		diffs.append( diff )
+	doSave = bool((p >= 6))
+	imList[2] |= doSave # save this
+	images[index+1][2] = doSave # save next
 
-print(len(diffs))
+# count different images
+diffs = 0
+for imList in images:
+	if imList[2]:
+		diffs += 1
 
-
-images = [i.save(diffpath + str(index) + '.jpg')for index, i in enumerate(diffs)]
-
-
-
-
-exit()
-image1 = Image.open('bild.jpg')
-image2 = Image.open('bild2.jpg')
+# save images
+print('saving ', diffs, 'images')
+for imList in images:
+	if imList[2]:
+		imList[0].save(diffpath + imList[1])
+print('savng done')
 
 
-diff.save('diff.jpg')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
