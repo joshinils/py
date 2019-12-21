@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 activate_env(){
 	if [ ! venv ]; then
 		virtualenv -p python3 venv
@@ -24,9 +26,9 @@ is_setup(){
 	return $(diff <(pip freeze) <(cat requirements.txt))
 }
 
+activate_env
+
 if [ ! is_setup ]; then
 	require_package
 	pip install -r requirements.txt
 fi
-
-activate_env
