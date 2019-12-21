@@ -9,6 +9,9 @@ class ImageFile:
         self.path = path
         self.name = name
 
+    def __lt__(self, other):
+        return self.name < other.name
+
 
 class FileReader:
     filenames = ''
@@ -20,6 +23,7 @@ class FileReader:
 
     def setup(self):
         self._ensure_diff_path()
+        self._gen_filenames()
 
     def _ensure_diff_path(self) -> None:
         if not os.path.exists(self.diff_path):
@@ -102,9 +106,8 @@ def file_list(iterable, batch_size, max_items):
     num = 0
     while num < max_items:
         file_batch = []
-        print(f'Opening {batch_size} images #{num + 1} - #{num + 1 + batch_size}')
-        for i in range(num, num + batch_size):
-            file_batch.append([Image.open(iterable[i].path + iterable[i].name), iterable[i].name])
+        print(f'Opening {batch_size} images #{num + 1} - #{num + batch_size}')
+        for i in range(num, min(max_items, num + batch_size)):
         yield file_batch
         num += batch_size
 
