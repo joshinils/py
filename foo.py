@@ -7,7 +7,7 @@ from os.path import isfile, join
 import time
 from shutil import copyfile
 
-mypath = '/home/nils/kamera/20191210cp/'
+mypath = '/mnt/kamera/20191210/'
 diffpath = mypath + 'diffs/'
 
 if not path.exists(diffpath):
@@ -17,7 +17,12 @@ onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
 onlyfiles.sort()
 print('opening', len(onlyfiles), 'images')
-images = list( zip([Image.open(mypath + i) for i in onlyfiles], onlyfiles) )
+images = list(
+	zip(
+		[Image.open(mypath + fileName) for fileName in onlyfiles],
+		onlyfiles
+	)
+)
 
 # make list of lists, instead of list of tuples
 images = [list(i) for i in images]
