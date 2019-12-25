@@ -91,31 +91,82 @@ class tsm:
         s.update()
     
     def iterate(self, maxIt=50):
-        while maxIt > 0:
-            maxIt -= 1
+        print('iterating...', end=' ')
+        for idAmount in range( 2, self.nPoints ):
+#            print('idAmount', idAmount)
+            iters = 0
+            while iters < maxIt:
+#                print('iters', iters)
+                iters += 1
 
-            id1=0; id2=0
-            if self.moveEnds:
-                id1 = random.randrange(self.nPoints)
-                id2 = random.randrange(self.nPoints)
-            else:
-                id1 = random.randrange(1, self.nPoints-1)
-                id2 = random.randrange(1, self.nPoints-1)
+                ids = list(range(self.nPoints))
 
-            pl2 = copy.deepcopy(self.pointList)
-            pl2[id1], pl2[id2] = pl2[id2], pl2[id1]
-            if pl2.travelLength() < self.pointList.travelLength():
-                self.pointList = pl2
-                return
+                if not self.moveEnds:
+                    ids.remove(1)
+                    ids.remove(max(ids))
+
+                while len(ids) > idAmount:
+                    r = random.randrange(len(ids))
+                    ids.remove(ids[r])
+
+                ids = list(ids)
+                pl2 = copy.deepcopy(self.pointList)
+                
+                # ringtausch, ohne letzten
+                for i, val in enumerate(ids[:-1]):
+                    pl2[val], pl2[ids[i+1]] = pl2[ids[i+1]], pl2[val]
+
+                if pl2.travelLength() < self.pointList.travelLength():
+                    self.pointList = pl2
+                    print(' ...succeeded')
+                    return
+        print(' ...failed')
 
 
-TSM = tsm(50, moveEnds = False)
-for i in range(5000):
+
+TSM = None
+nodeAmount = 50
+
+def nodePlus():
+    global nodeAmount
+    nodeAmount += 1
+    start()
+s.onkey(nodePlus, 'Up')
+
+def nodeMinus():
+    global nodeAmount
+    nodeAmount = max(nodeAmount-1, 1)
+    start()
+s.onkey(nodeMinus, 'Down')
+
+def nodeAmountReset():
+    global nodeAmount
+    nodeAmount = 5
+    start()
+s.onkey(nodeAmountReset, 'Left')
+s.onkey(nodeAmountReset, 'Right')
+
+def start():
+    global TSM
+    global nodeAmount
+    TSM = tsm(nodeAmount, moveEnds = True)
     TSM.draw()
-    TSM.iterate(100)
-TSM.draw()
-print('done')
+s.onkey(start, 'Return')
+
+def drawIterate():
+    if TSM is None:
+        start()
+        return
+    #for i in range(5000):
+#    TSM.draw()
+    TSM.iterate(1000)
+    TSM.draw()
+#    print('foo!')
+s.onkey(drawIterate, 'space')
+
+s.listen()
 s.mainloop()
+
 
 
 
