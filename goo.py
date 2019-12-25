@@ -90,40 +90,35 @@ class tsm:
             drawRing(p, color, fillColor, str(i))
         s.update()
     
-    def iterate(self, maxIt=50):
-        print('iterating...', end=' ')
-        for idAmount in range( 2, self.nPoints ):
-#            print('idAmount', idAmount)
+    def iterate(self, maxIt = 50):
+        print('iterating...')
+        for idAmount in range( 2, self.nPoints +1):
+            maxAmount = maxIt * (self.nPoints - idAmount) / self.nPoints
             iters = 0
-            while iters < maxIt:
-#                print('iters', iters)
+            while iters < maxAmount:
+                print('\033[KidAmount ', idAmount, ' iters ', iters, end='\r')
                 iters += 1
-
                 ids = list(range(self.nPoints))
-
                 if not self.moveEnds:
                     ids.remove(1)
                     ids.remove(max(ids))
-
-                while len(ids) > idAmount:
+                while len(ids) > idAmount: # remove ids 
                     r = random.randrange(len(ids))
                     ids.remove(ids[r])
-
+                for _ in range(len(ids)): # permute ids
+                    l = random.randrange(len(ids))
+                    r = random.randrange(len(ids))
+                    ids[l], ids[r] = ids[r], ids[l]
                 ids = list(ids)
                 pl2 = copy.deepcopy(self.pointList)
-                
-                # ringtausch, ohne letzten
-                for i, val in enumerate(ids[:-1]):
+                for i, val in enumerate(ids[:-1]): # ringtausch, ohne letzten
                     pl2[val], pl2[ids[i+1]] = pl2[ids[i+1]], pl2[val]
-
-                if pl2.travelLength() < self.pointList.travelLength():
+                if pl2.travelLength() < self.pointList.travelLength(): # check length
                     self.pointList = pl2
-                    print(' ...succeeded')
+                    print()
+                    print('...succeeded')
                     return
-        print(' ...failed')
-
-
-
+        print()
 TSM = None
 nodeAmount = 50
 
@@ -154,14 +149,12 @@ def start():
 s.onkey(start, 'Return')
 
 def drawIterate():
+    print('drawIterate called')
     if TSM is None:
         start()
         return
-    #for i in range(5000):
-#    TSM.draw()
     TSM.iterate(1000)
     TSM.draw()
-#    print('foo!')
 s.onkey(drawIterate, 'space')
 
 s.listen()
