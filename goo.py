@@ -65,6 +65,10 @@ class tsm:
         self.nPoints = nPoints
         self.pointList = PointList()
         self.moveEnds = moveEnds
+        self.notMovable = set()
+        if not self.moveEnds:
+            self.notMovable.add(0)
+            self.notMovable.add(nPoints-1)
 
         w = s.window_width()
         h = s.window_height()
@@ -83,7 +87,7 @@ class tsm:
             color = (255 - round( 255 * i/len(self.pointList) ), 
                            round( 255 * i/len(self.pointList) ), 
                      0 )
-            if i == 0 or i == len(self.pointList)-1:
+            if i in self.notMovable:
                 fillColor = color
             else:
                 fillColor = s.bgcolor()
@@ -99,9 +103,8 @@ class tsm:
                 print('\033[KidAmount ', idAmount, ' iters ', iters, end='\r')
                 iters += 1
                 ids = list(range(self.nPoints))
-                if not self.moveEnds:
-                    ids.remove(1)
-                    ids.remove(max(ids))
+                for id in self.notMovable: # remove non-movable
+                    ids.remove(id)
                 while len(ids) > idAmount: # remove ids 
                     r = random.randrange(len(ids))
                     ids.remove(ids[r])
@@ -119,6 +122,23 @@ class tsm:
                     print('...succeeded')
                     return
         print()
+    def toggle(self, x, y):
+        closest = -1
+        distance = 1e10
+        for i, val in enumerate(self.pointList):
+            dist = math.sqrt((x - val[0]) ** 2 + (y - val[1]) ** 2 )
+            if dist < distance:
+                distance = dist
+                closest = i
+        print(distance)
+        if distance < 20:
+            if closest in self.notMovable:
+                self.notMovable.remove(closest)
+            else:
+                self.notMovable.add(closest)
+            self.draw()
+        print(self.notMovable)
+
 TSM = None
 nodeAmount = 50
 
@@ -144,18 +164,29 @@ s.onkey(nodeAmountReset, 'Right')
 def start():
     global TSM
     global nodeAmount
-    TSM = tsm(nodeAmount, moveEnds = True)
+    TSM = tsm(nodeAmount, moveEnds = False)
     TSM.draw()
 s.onkey(start, 'Return')
 
 def drawIterate():
-    print('drawIterate called')
+    global TSM
     if TSM is None:
         start()
         return
     TSM.iterate(1000)
     TSM.draw()
 s.onkey(drawIterate, 'space')
+
+def clickedOn(x, y):
+    global TSM
+    if TSM is None:
+        start()
+        return
+    TSM.toggle(x,y)
+
+s.onclick(clickedOn)
+
+
 
 s.listen()
 s.mainloop()
