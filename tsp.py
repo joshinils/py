@@ -124,14 +124,14 @@ class tsm:
         print()
     def toggle(self, x, y):
         closest = -1
-        distance = 1e10
+        minDist = 1e10
         for i, val in enumerate(self.pointList):
             dist = math.sqrt((x - val[0]) ** 2 + (y - val[1]) ** 2 )
-            if dist < distance:
-                distance = dist
+            if dist < minDist:
+                minDist = dist
                 closest = i
-        print(distance)
-        if distance < 20:
+        print(minDist)
+        if minDist < 20:
             if closest in self.notMovable:
                 self.notMovable.remove(closest)
             else:
@@ -190,7 +190,3 @@ s.onclick(clickedOn)
 
 s.listen()
 s.mainloop()
-
-
-
-
